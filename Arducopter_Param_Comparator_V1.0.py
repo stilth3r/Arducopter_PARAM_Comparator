@@ -3,8 +3,8 @@ import csv
 import sys
 from typing import List
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableView, QHeaderView, QPushButton, QFileDialog, QMessageBox, QAbstractItemView, QMenu, QAction, QVBoxLayout, QWidget, QSizePolicy, QMenuBar
-from PyQt5.QtGui import QStandardItemModel, QStandardItem, QColor, QPalette
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableView, QHeaderView, QPushButton, QFileDialog, QMessageBox, QAbstractItemView, QMenu, QAction, QVBoxLayout, QWidget, QSizePolicy, QMenuBar,  QLineEdit
+from PyQt5.QtGui import QStandardItemModel, QStandardItem, QColor
 import qdarktheme
 
 class ArdupilotParameterComparison(QMainWindow):
@@ -15,7 +15,7 @@ class ArdupilotParameterComparison(QMainWindow):
         self.setAcceptDrops(True)
 
         # Initialisation de la fenêtre principale
-        self.setWindowTitle("Comparaison de paramètres Ardupilot V1.0")
+        self.setWindowTitle("Comparaison de paramètres Ardupilot V1.01")
         self.setGeometry(100, 100, 800, 600)
         
               
@@ -28,6 +28,7 @@ class ArdupilotParameterComparison(QMainWindow):
         import_action.triggered.connect(self.import_file)
         file_menu.addAction(import_action)
 
+        
         # Tableau des paramètres
         self.table_view = QTableView(self)
         self.table_view.setGeometry(10, 70, 780, 520)
@@ -38,6 +39,12 @@ class ArdupilotParameterComparison(QMainWindow):
         self.table_view.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setCentralWidget(self.table_view)
+
+        self.filter_edit = QLineEdit(self)
+        self.filter_edit.setPlaceholderText("Filtrer...")
+        self.filter_edit.textChanged.connect(self.filter_data)
+        self.filter_edit.move(100, 1)
+        self.filter_edit.resize(150, 24)
 
         self.file_names = []
 
@@ -182,6 +189,25 @@ class ArdupilotParameterComparison(QMainWindow):
                 # lance la procédure d'import avec le fichier déposé
                 self.import_file(path)
                 break
+
+    def filter_data(self):
+        # Récupération de la valeur du champ de texte
+        filter_value = self.filter_edit.text().upper()
+
+        # Si la valeur a au moins 3 caractères
+        if len(filter_value) >= 3:
+            # Filtrage des données du tableau
+            for i in range(self.table_model.rowCount()):
+                item = self.table_model.index(i, 0).data()
+                if item is not None and filter_value in item:
+                    self.table_view.setRowHidden(i, False)
+                else:
+                    self.table_view.setRowHidden(i, True)
+        else:
+            # Si la valeur a moins de 3 caractères, on affiche toutes les lignes
+            for i in range(self.table_model.rowCount()):
+                self.table_view.setRowHidden(i, False)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
